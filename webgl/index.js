@@ -12,6 +12,7 @@ gl.shaderSource(vertexShader, `
 
   void main() {
     gl_Position = a_position; // 设置顶点位置
+    gl_PointSize=20.0;
   }
 `) // 编写顶点着色器代码
 gl.compileShader(vertexShader) // 编译着色器
@@ -45,9 +46,9 @@ gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer)
 // 将这个顶点缓冲对象绑定到 gl.ARRAY_BUFFER
 // 后续对 gl.ARRAY_BUFFER 的操作都会映射到这个缓存
 gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([
-    0, 1,
-    0.5, 0,
-    -0.5, -0.5
+    0, 1,0,
+    0.5, 0,0,
+    -0.5, -0.5,0
 ]),  // 三角形的三个顶点
      // 因为会将数据发送到 GPU，为了省去数据解析，这里使用 Float32Array 直接传送数据
 gl.STATIC_DRAW // 表示缓冲区的内容不会经常更改
@@ -58,7 +59,7 @@ gl.enableVertexAttribArray(positionLocation);
 // 开启 attribute 变量，使顶点着色器能够访问缓冲区数据
 gl.vertexAttribPointer( // 告诉 OpenGL 如何从 Buffer 中获取数据
     positionLocation, // 顶点属性的索引
-    2, // 组成数量，必须是1，2，3或4。我们只提供了 x 和 y
+    3, // 组成数量，必须是1，2，3或4。我们只提供了 x 和 y
     gl.FLOAT, // 每个元素的数据类型
     false, // 是否归一化到特定的范围，对 FLOAT 类型数据设置无效
     0, // stride 步长 数组中一行长度，0 表示数据是紧密的没有空隙，让OpenGL决定具体步长
