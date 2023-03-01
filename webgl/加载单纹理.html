@@ -94,13 +94,11 @@
     }
 
     function assignValue(gl, program) {
-      let positions = new Float32Array([
-        -0.85, -0.85, 0, 0,
-       -0.85, 0.85, 0, 1,
-        0.85, 0.85, 1, 1, 
-        -0.85, -0.85, 0, 0,
-         0.85, 0.85, 1, 1,
-          0.85, -0.85, 1, 0])
+      let positions = new Float32Array([-0.5, 0.5, 0.0, 1.0,
+       -0.5, -0.5, 0.0, 0.0,
+        0.5, 0.5, 1.0, 1.0,
+         0.5, -0.5, 1.0, 0.0
+])
 
       // 随机生成一个颜色。
       //   var color = randomColor()
@@ -127,26 +125,36 @@
         render(gl, positions.length / 4)
       })
     }
-    function loadTexture(webgl, src, attribute, callback) {
-      let textureHandle = webgl.createTexture()
-      textureHandle.image = new Image()
-      textureHandle.image.src =src
-      textureHandle.image.onload = function () {
-        webgl.bindTexture(webgl.TEXTURE_2D, textureHandle)
-        webgl.texImage2D(webgl.TEXTURE_2D, 0, webgl.RGBA, webgl.RGBA, webgl.UNSIGNED_BYTE, textureHandle.image)
-        webgl.texParameteri(webgl.TEXTURE_2D, webgl.TEXTURE_MAG_FILTER, webgl.LINEAR)
-        webgl.texParameteri(webgl.TEXTURE_2D, webgl.TEXTURE_MIN_FILTER, webgl.LINEAR)
-        webgl.texParameteri(webgl.TEXTURE_2D, webgl.TEXTURE_WRAP_S, webgl.REPEAT)
-        webgl.texParameteri(webgl.TEXTURE_2D, webgl.TEXTURE_WRAP_T, webgl.REPEAT)
+    function loadTexture(gl, src, attribute, callback) {
+      let textureHandle = gl.createTexture()
+      var image=new Image()
+      image.src=src
+      image.onload = function () {
+        console.log('图片加载完成');
+        //对问题图像进行y轴反转
+        gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL,1);
+        //开启0号纹理单元
+        gl.activeTexture(gl.TEXTURE0);
+        gl.bindTexture(gl.TEXTURE_2D, textureHandle)
+        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image)
+        //配置纹理参数
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST)
+
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST)
+        //处理图片像素非2的幂次方的配置
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE)
+
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE)
+        gl.uniform1i(attribute, 0)
+        callback && callback()
       }
-      webgl.uniform1i(attribute, 0)
-      callback && callback()
     }
     function render(gl, count) {
+      console.log(count);
       //设置清屏颜色为黑色。
       gl.clearColor(0, 1, 0, 1)
       gl.clear(gl.COLOR_BUFFER_BIT)
-      gl.drawArrays(gl.TRIANGLES, 0, count)
+      gl.drawArrays(gl.TRIANGLE_STRIP, 0, count)
     }
   </script>
 </html>
