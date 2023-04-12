@@ -14,3 +14,5 @@ webgl默认视点在原点，方向为z轴负轴
 设置视点位置-》旋转平移模型操作
 ### Projection
 image.png
+test.jpeg
+[photo](./test.jpeg)

@@ -23,13 +23,13 @@
     gl.shaderSource(
         vertexShader,
         `
-  attribute vec4 a_position;
-  uniform mat4 u_matrix;
-  void main() {
-    gl_Position = u_matrix*a_position; // 设置顶点位置
-    gl_PointSize=20.0;
-  }
-`
+         attribute vec4 a_position;
+         uniform mat4 u_matrix;
+         void main() {
+           gl_Position = u_matrix*a_position; // 设置顶点位置
+           gl_PointSize=20.0;
+         }
+        `
     ) // 编写顶点着色器代码
     gl.compileShader(vertexShader) // 编译着色器
 
@@ -37,13 +37,13 @@
     gl.shaderSource(
         fragmentShader,
         `
-  precision mediump float;
-  uniform vec4 u_color;
-
-  void main() {
-    gl_FragColor = u_color; // 设置片元颜色
-  }
-`
+          precision mediump float;
+          uniform vec4 u_color;
+              
+          void main() {
+            gl_FragColor = u_color; // 设置片元颜色
+          }
+        `
     ) // 编写片元着色器代码
     gl.compileShader(fragmentShader) // 编译着色器
 
@@ -98,7 +98,7 @@
         8, // stride 步长 数组中一行长度，0 表示数据是紧密的没有空隙，让OpenGL决定具体步长
         0 // offset 字节偏移量，必须是类型的字节长度的倍数。
     )
-
+    window.gl = gl
     gl.clearColor(0, 1, 1, 1) // 设置清空颜色缓冲时的颜色值
     gl.clear(gl.COLOR_BUFFER_BIT) // 清空颜色缓冲区，也就是清空画布
 
