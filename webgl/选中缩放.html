@@ -92,11 +92,11 @@
         zoom += event.deltaY * -0.01;
         zoom = Math.min(Math.max(0.1, zoom), 10.0);
         //设置mvp矩阵
-         ProjMatrix = glMatrix.mat4.create();
+        ProjMatrix = glMatrix.mat4.create();
         glMatrix.mat4.identity(ProjMatrix);
         //角度小，看到的物体大，角度大，看到的物体小。
         console.log(zoom);
-        glMatrix.mat4.perspective(ProjMatrix, 45 * Math.PI / 180, canvas.clientWidth / canvas.clientHeight, 1*zoom, 500*zoom)    //修改可视域范围
+        glMatrix.mat4.perspective(ProjMatrix, 45 * Math.PI / 180, canvas.clientWidth / canvas.clientHeight, 1 * zoom, 500 * zoom)    //修改可视域范围
         draw()
     });
     //设置mvp矩阵
@@ -200,6 +200,8 @@
     gl.enable(gl.DEPTH_TEST);
     draw()
     function draw() {
+        let res = gl.getProgramParameter(program, gl.ACTIVE_UNIFORMS);
+        console.log(res,gl.getActiveUniform(program, 1));
         let mvpMatrix = glMatrix.mat4.create();
         glMatrix.mat4.identity(mvpMatrix);
         glMatrix.mat4.multiply(mvpMatrix, ProjMatrix, mvMatrix);

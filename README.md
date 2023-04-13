@@ -16,3 +16,7 @@ webgl默认视点在原点，方向为z轴负轴
 image.png
 test.jpeg
 [photo](./test.jpeg)
+
+### api
+获取正在使用的uniform变量个数gl.getProgramParameter(program, gl.ACTIVE_UNIFORMS); 
+获取uniform变量信息  gl.getActiveUniform(program, index)
