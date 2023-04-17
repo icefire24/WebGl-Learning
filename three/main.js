@@ -52,8 +52,9 @@ loader.load(
         // 将模型添加到场景中
         scene.add(gltf.scene);
         console.log(gltf.scene);
-        gltf.scene.position.x=10
-        gltf.scene.children[0].position.x=2
+        // gltf.scene.position.x=0
+        gltf.scene.children[0].position.x=6
+        gltf.scene.updateMatrixWorld(); // 更新模型的世界矩阵
     },
     // 正在加载时的回调函数
     function (xhr) {
