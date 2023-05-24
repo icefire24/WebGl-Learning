@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Document</title>
+</head>
+
+<body>
+  <canvas id="canvas"></canvas>
+</body>
+
+<script>
+  init()
+
+  function init() {
+    //获取canvas
+    let canvas = document.querySelector('#canvas')
+    //获取绘图上下文
+    let gl = canvas.getContext('webgl')
+    //设置视图区域
+    gl.viewport(0, 0, canvas.clientWidth, canvas.clientHeight)
+    //创建着色器程序
+    let program = initShader(gl)
+    //创建缓冲区跟着色器交互
+    assignValue(gl, program)
+  }
+  function initShader(gl) {
+    let vertexShader = gl.createShader(gl.VERTEX_SHADER) // 创建一个顶点着色器
+    gl.shaderSource(
+      vertexShader,
+      `
+    //浮点数设置为中等精度
+    precision mediump float;
+    attribute vec2 a_Position;
+    varying vec2 v_Uv; //插值后纹理坐标
+    attribute vec2 a_Uv;//纹理坐标
+    void main(){
+        gl_Position = vec4(a_Position, 0, 1);
+        //纹理坐标差值计算
+        v_Uv = a_Uv;
+    }
+    `
+    ) // 编写顶点着色器代码
+    gl.compileShader(vertexShader) // 编译着色器
+    fragmentShader = gl.createShader(gl.FRAGMENT_SHADER) // 创建一个片元着色器
+    gl.shaderSource(
+      fragmentShader,
+      `
+    //浮点数设置为中等精度
+    precision mediump float;
+    // 取样器类型变量,对应纹理图片的像素数据
+    uniform sampler2D u_Texture;
+    // 接收插值后的纹理坐标
+    varying vec2 v_Uv;
+    void main(){
+        // 点的最终颜色。采集纹素，逐片元赋值像素值
+        //每一个纹理坐标对应u_Texture数据的一个纹素
+        gl_FragColor = texture2D(u_Texture, v_Uv);
+    }
+    `
+    ) // 编写片元着色器代码
+    gl.compileShader(fragmentShader)
+    let program = gl.createProgram() // 创建一个程序
+    gl.attachShader(program, vertexShader) // 添加顶点着色器
+    gl.attachShader(program, fragmentShader) // 添加片元着色器
+    gl.linkProgram(program) // 连接 program 中的着色器
+    gl.useProgram(program)
+    return program
+  }
+
+  function assignValue(gl, program) {
+    let positions = new Float32Array([-0.5, 0.5, 0.0, 1.0,
+    -0.5, -0.5, 0.0, 0.0,
+      0.5, 0.5, 1.0, 1.0,
+      0.5, -0.5, 1.0, 0.0
+    ])
+
+    // 随机生成一个颜色。
+    //   var color = randomColor()
+    // 找到着色器中的全局变量 u_Color;
+    var u_Texture = gl.getUniformLocation(program, 'u_Texture')
+    var a_Position = gl.getAttribLocation(program, 'a_Position')
+    var a_Uv = gl.getAttribLocation(program, 'a_Uv')
+
+    gl.enableVertexAttribArray(a_Position)
+    gl.enableVertexAttribArray(a_Uv)
+    // 创建缓冲区
+    var buffer = gl.createBuffer()
+    // 绑定缓冲区为当前缓冲
+    gl.bindBuffer(gl.ARRAY_BUFFER, buffer)
+    // 设置 a_Position 属性从缓冲区读取数据方式
+    gl.vertexAttribPointer(a_Position, 2, gl.FLOAT, false, 16, 0)
+    // 设置 a_Uv 属性从缓冲区读取数据方式
+    gl.vertexAttribPointer(a_Uv, 2, gl.FLOAT, false, 16, 8)
+    // 向缓冲区传递数据
+    gl.bufferData(gl.ARRAY_BUFFER, positions, gl.STATIC_DRAW)
+    //加载纹理图片
+    loadTexture(gl, './ice.jpg', u_Texture, function () {
+      //WebGL渲染
+      render(gl, positions.length / 4)
+    })
+  }
+  function loadTexture(gl, src, attribute, callback) {
+    let textureHandle = gl.createTexture()
+    var image = new Image()
+    image.src = src
+    image.onload = function () {
+      console.log('图片加载完成');
+      //对问题图像进行y轴反转
+      gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, 1);
+      //开启0号纹理单元
+      gl.activeTexture(gl.TEXTURE0);
+      gl.bindTexture(gl.TEXTURE_2D, textureHandle)
+      gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image)
+      //配置纹理参数
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST)
+
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST)
+      //处理图片像素非2的幂次方的配置
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE)
+
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE)
+      gl.uniform1i(attribute, 0)
+      callback && callback()
+    }
+  }
+  function render(gl, count) {
+    console.log(count);
+    //设置清屏颜色为黑色。
+    gl.clearColor(0, 1, 0, 1)
+    gl.clear(gl.COLOR_BUFFER_BIT)
+    gl.drawArrays(gl.TRIANGLE_STRIP, 0, count)
+  }
+</script>
+
+</html>
