@@ -75,13 +75,16 @@
   // 创建一个顶点缓冲对象，返回其 ID，用来放三角形顶点数据，
   gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer)
   let points = []
-  canvas.onclick = function (e) {
+  // 定义圆形的顶点数量
+  const segments = 32;
 
-    let x = (e.pageX - e.target.getBoundingClientRect().left - canvas.width / 2) / canvas.width * 2;
-    let y = (canvas.height / 2 - (e.pageY - e.target.getBoundingClientRect().top)) / canvas.height * 2;
-    // points=[]
-    points.push(x, y, 0)
-    render()
+  // 创建顶点数组
+  const vertices = [];
+  for (let i = 0; i <= segments; i++) {
+    const angle = (i / segments) * Math.PI * 2;
+    const x = Math.cos(angle);
+    const y = Math.sin(angle);
+    vertices.push(x, y, 0);
   }
   function render() {
 
@@ -89,7 +92,7 @@
     // 后续对 gl.ARRAY_BUFFER 的操作都会映射到这个缓存
     gl.bufferData(
       gl.ARRAY_BUFFER,
-      new Float32Array(points), // 三角形的三个顶点
+      new Float32Array(vertices), // 三角形的三个顶点
       // 因为会将数据发送到 GPU，为了省去数据解析，这里使用 Float32Array 直接传送数据
       gl.STATIC_DRAW // 表示缓冲区的内容不会经常更改
     )
@@ -114,7 +117,7 @@
       // 从数组中绘制图元
       gl.TRIANGLE_FAN, // 绘制图元的类型，这里是三角形
       0, // 从数组中哪个点开始渲染
-      points.length / 3 // 需要用到多少个点，三角形的三个顶点
+      segments + 2// 需要用到多少个点，三角形的三个顶点
     )
 
   }
