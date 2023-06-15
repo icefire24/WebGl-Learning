@@ -6,13 +6,44 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>webgl</title>
+    <style>
+        * {
+            margin: 0;
+            bottom: 0;
+        }
+
+        .test {
+            z-index: 8999;
+            position: absolute;
+            left: 0;
+            top: 0;
+        }
+    </style>
 </head>
 
-<body></body>
+<body>
+    <div class="test">
+        <button onclick="test()">点击</button>
+        <button onclick="scal()">scal</button>
+    </div>
+</body>
 <script src="glmatrix.js"></script>
+<script src="three.min.js"></script>
 <script>
+    console.log(window);
+    function test() {
+        glMatrix.mat4.translate(modelMatrix, modelMatrix, [1, 0, 0])
+
+        gl.uniformMatrix4fv(mMatrix, false, modelMatrix);
+    }
+    function scal() {
+        glMatrix.mat4.scale(modelMatrix, modelMatrix, [1, 1, 1])
+
+        gl.uniformMatrix4fv(mMatrix, false, modelMatrix);
+    }
     const canvas = document.createElement('canvas')
-    canvas.width = canvas.height = 300
+    canvas.width = document.documentElement.clientWidth
+    canvas.height = document.documentElement.clientHeight
     document.body.append(canvas)
     const gl = canvas.getContext('webgl')
 
@@ -63,113 +94,143 @@
 
 
 
-    //设置mvp矩阵
-    let ProjMatrix = glMatrix.mat4.create();
-    glMatrix.mat4.identity(ProjMatrix);
-    //角度小，看到的物体大，角度大，看到的物体小。
-    glMatrix.mat4.perspective(ProjMatrix, 45 * Math.PI / 180, canvas.clientWidth / canvas.clientHeight, 1, 500)    //修改可视域范围
 
     let mMatrix = gl.getUniformLocation(program, "m_matrix");
     let vMatrix = gl.getUniformLocation(program, "v_matrix");
     let pMatrix = gl.getUniformLocation(program, "p_matrix");
-    gl.uniformMatrix4fv(pMatrix, false, ProjMatrix);
+    //模型矩阵
     let ModelMatrix = glMatrix.mat4.create();
-    gl.uniformMatrix4fv(mMatrix, false, ModelMatrix);
-
-    let ViewMatrix = glMatrix.mat4.create();
-    glMatrix.mat4.identity(ViewMatrix);
-    glMatrix.mat4.lookAt(ViewMatrix, [5, 5, 5], [0, 0, 0], [0, 0, 1]);
-    gl.uniformMatrix4fv(vMatrix, false, ViewMatrix);
+    let modelMatrix = glMatrix.mat4.create()
 
 
+    let ViewMatrix
+    let rotate
+    function setMatrix(gl) {
+        gl.uniformMatrix4fv(mMatrix, false, modelMatrix);
+
+        //设置透视矩阵
+        let ProjMatrix = glMatrix.mat4.create();
+        glMatrix.mat4.identity(ProjMatrix);
+        //角度小，看到的物体大，角度大，看到的物体小。
+        glMatrix.mat4.perspective(ProjMatrix, 45 * Math.PI / 180, canvas.clientWidth / canvas.clientHeight, 1, 500)    //透视投影
+        // glMatrix.mat4.ortho(ProjMatrix, -20, 20, -20, 20, 0.1, 400)//正射投影
+        gl.uniformMatrix4fv(pMatrix, false, ProjMatrix);
 
 
 
+        ViewMatrix = glMatrix.mat4.create();
+        glMatrix.mat4.identity(ViewMatrix);
+        // glMatrix.mat4.lookAt(ViewMatrix, [0, 0, 3], [0, 0, 0], [0, 1, 0]);
+
+        glMatrix.mat4.lookAt(ViewMatrix, [30, 30, 30], [0, 0, 0], [0, 0, 1]);
+        gl.uniformMatrix4fv(vMatrix, false, ViewMatrix);
+
+    }
+    setMatrix(gl)
+
+
+    let r=10
     const positionLocation = gl.getAttribLocation(program, 'a_position')
     const u_color = gl.getAttribLocation(program, 'v_color')
-    // 获取 a_position 位置
-    const positionBuffer = gl.createBuffer()
-    // 创建一个顶点缓冲对象，返回其 ID，用来放三角形顶点数据，
-    gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer)
-    // 将这个顶点缓冲对象绑定到 gl.ARRAY_BUFFER
-    // 后续对 gl.ARRAY_BUFFER 的操作都会映射到这个缓存
-    let arr = [
+    function addbox() {
+        
+        r+=1
+        glMatrix.mat4.translate(modelMatrix, modelMatrix, [5, 5, 0])
+        let matrix2=glMatrix.mat4.copy(glMatrix.mat4.create(),modelMatrix)
+        
+        glMatrix.mat4.rotateX(modelMatrix, modelMatrix, r*Math.PI/180)
+        setMatrix(gl)
+        glMatrix.mat4.rotate(modelMatrix, modelMatrix, Math.PI / 180 * 45, [0, 0, 1])
+
+        // 获取 a_position 位置
+        const positionBuffer = gl.createBuffer()
+        // 创建一个顶点缓冲对象，返回其 ID，用来放三角形顶点数据，
+        gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer)
+        // 将这个顶点缓冲对象绑定到 gl.ARRAY_BUFFER
+        // 后续对 gl.ARRAY_BUFFER 的操作都会映射到这个缓存
+        let arr = [
 
 
-        //    v6----- v5
-        //   /|      /|
-        //  v1------v0|
-        //  | |     | |
-        //  | |v7---|-|v4
-        //  |/      |/
-        //  v2------v3
-        1, 1, 1, 1,
-        1.0, 1.0, 1.0, 1.0,
-        -1, 1, 1, 1,
-        1.0, 1.0, 1.0, 1.0,
-        -1, -1, 1, 1,
-        1.0, 1.0, 1.0, 1.0,
-        1, 1, 1, 1,
-        1.0, 1.0, 1.0, 1.0,
-        -1, -1, 1, 1,
-        1.0, 1.0, 1.0, 1.0,
-        1, -1, 1, 1,
-        1.0, 1.0, 1.0, 1.0,  //前面
+            //    v6----- v5
+            //   /|      /|
+            //  v1------v0|
+            //  | |     | |
+            //  | |v7---|-|v4
+            //  |/      |/
+            //  v2------v3
+            1, 1, 1, 1,
+            1.0, 1.0, 1.0, 1.0,
+            -1, 1, 1, 1,
+            1.0, 1.0, 1.0, 1.0,
+            -1, -1, 1, 1,
+            1.0, 1.0, 1.0, 1.0,
+            1, 1, 1, 1,
+            1.0, 1.0, 1.0, 1.0,
+            -1, -1, 1, 1,
+            1.0, 1.0, 1.0, 1.0,
+            1, -1, 1, 1,
+            1.0, 1.0, 1.0, 1.0,  //前面
 
-        1, 1, -1, 1, 0.0, 1.0, 1.0, 1.0, 1, 1, 1, 1, 0.0, 1.0, 1.0, 1.0, 1, -1, 1, 1, 0.0, 1.0, 1.0, 1.0, 1, 1, -1, 1, 0.0, 1.0, 1.0, 1.0, 1, -1, 1, 1, 0.0, 1.0, 1.0, 1.0, 1, -1, -1, 1, 0.0, 1.0, 1.0, 1.0, //右
+            1, 1, -1, 1, 0.0, 1.0, 1.0, 1.0, 1, 1, 1, 1, 0.0, 1.0, 1.0, 1.0, 1, -1, 1, 1, 0.0, 1.0, 1.0, 1.0, 1, 1, -1, 1, 0.0, 1.0, 1.0, 1.0, 1, -1, 1, 1, 0.0, 1.0, 1.0, 1.0, 1, -1, -1, 1, 0.0, 1.0, 1.0, 1.0, //右
 
-        -1, 1, -1, 1, 1.0, 0.0, 0.0, 1.0, 1, 1, -1, 1, 1.0, 0.0, 0.0, 1.0, 1, -1, -1, 1, 1.0, 0.0, 0.0, 1.0, -1, 1, -1, 1, 1.0, 0.0, 0.0, 1.0, 1, -1, -1, 1, 1.0, 0.0, 0.0, 1.0, -1, -1, -1, 1, 1.0, 0.0, 0.0, 1.0,//后
+            -1, 1, -1, 1, 1.0, 0.0, 0.0, 1.0, 1, 1, -1, 1, 1.0, 0.0, 0.0, 1.0, 1, -1, -1, 1, 1.0, 0.0, 0.0, 1.0, -1, 1, -1, 1, 1.0, 0.0, 0.0, 1.0, 1, -1, -1, 1, 1.0, 0.0, 0.0, 1.0, -1, -1, -1, 1, 1.0, 0.0, 0.0, 1.0,//后
 
-        -1, 1, 1, 1, 1.0, 1.0, 1, 1.0, -1, 1, -1, 1, 1.0, 1.0, 1, 1.0, -1, -1, -1, 1, 1.0, 1.0, 1, 1.0, -1, 1, 1, 1, 1.0, 1.0, 1, 1.0, -1, -1, -1, 1, 1.0, 1.0, 1, 1.0, -1, -1, 1, 1, 1.0, 1.0, 1, 1.0,//左
+            -1, 1, 1, 1, 1.0, 1.0, 1, 1.0, -1, 1, -1, 1, 1.0, 1.0, 1, 1.0, -1, -1, -1, 1, 1.0, 1.0, 1, 1.0, -1, 1, 1, 1, 1.0, 1.0, 1, 1.0, -1, -1, -1, 1, 1.0, 1.0, 1, 1.0, -1, -1, 1, 1, 1.0, 1.0, 1, 1.0,//左
 
-        -1, 1, -1, 1, 0.0, 1.0, 1.0, 1.0, -1, 1, 1, 1, 0.0, 1.0, 1.0, 1.0, 1, 1, 1, 1, 0.0, 1.0, 1.0, 1.0, -1, 1, -1, 1, 0.0, 1.0, 1.0, 1.0, 1, 1, 1, 1, 0.0, 1.0, 1.0, 1.0, 1, 1, -1, 1, 0.0, 1.0, 1.0, 1.0, //上
+            -1, 1, -1, 1, 0.0, 1.0, 1.0, 1.0, -1, 1, 1, 1, 0.0, 1.0, 1.0, 1.0, 1, 1, 1, 1, 0.0, 1.0, 1.0, 1.0, -1, 1, -1, 1, 0.0, 1.0, 1.0, 1.0, 1, 1, 1, 1, 0.0, 1.0, 1.0, 1.0, 1, 1, -1, 1, 0.0, 1.0, 1.0, 1.0, //上
 
-        -1, -1, 1, 1, 1.0, 1.0, 0, 1.0, -1, -1, -1, 1, 1.0, 1.0, 0, 1.0, 1, -1, -1, 1, 1.0, 1.0, 0, 1.0, -1, -1, 1, 1, 1.0, 1.0, 0, 1.0, 1, -1, -1, 1, 1.0, 1.0, 0, 1.0, 1, -1, 1, 1, 1.0, 1.0, 0, 1.0, //下
+            -1, -1, 1, 1, 1.0, 1.0, 0, 1.0, -1, -1, -1, 1, 1.0, 1.0, 0, 1.0, 1, -1, -1, 1, 1.0, 1.0, 0, 1.0, -1, -1, 1, 1, 1.0, 1.0, 0, 1.0, 1, -1, -1, 1, 1.0, 1.0, 0, 1.0, 1, -1, 1, 1, 1.0, 1.0, 0, 1.0, //下
 
 
-    ]
-    gl.bufferData(
-        gl.ARRAY_BUFFER,
-        new Float32Array(arr),
-
-        // 因为会将数据发送到 GPU，为了省去数据解析，这里使用 Float32Array 直接传送数据
-        gl.STATIC_DRAW // 表示缓冲区的内容不会经常更改
-    )
-    // 将顶点数据加入的刚刚创建的缓存对象
-
-    gl.enableVertexAttribArray(positionLocation)
-    // 开启 attribute 变量，使顶点着色器能够访问缓冲区数据
-    gl.vertexAttribPointer(
-        // 告诉 OpenGL 如何从 Buffer 中获取数据
-        positionLocation, // 顶点属性的索引
-        4, // 组成数量，必须是1，2，3或4。我们只提供了 x 和 y
-        gl.FLOAT, // 每个元素的数据类型
-        false, // 是否归一化到特定的范围，对 FLOAT 类型数据设置无效
-        8 * 4, // stride 步长 数组中一行长度，0 表示数据是紧密的没有空隙，让OpenGL决定具体步长
-        0 // offset 字节偏移量，必须是类型的字节长度的倍数。
-    )
-    gl.enableVertexAttribArray(u_color)
-    gl.vertexAttribPointer(
-        u_color,
-        4,
-        gl.FLOAT,
-        false,
-        8 * 4,
-        4 * 4
-    )
+        ]
+        gl.bufferData(
+            gl.ARRAY_BUFFER,
+            new Float32Array(arr),
+            // 因为会将数据发送到 GPU，为了省去数据解析，这里使用 Float32Array 直接传送数据
+            gl.STATIC_DRAW // 表示缓冲区的内容不会经常更改
+        )
+        // 将顶点数据加入的刚刚创建的缓存对象
+        gl.enableVertexAttribArray(positionLocation)
+        // 开启 attribute 变量，使顶点着色器能够访问缓冲区数据
+        gl.vertexAttribPointer(
+            // 告诉 OpenGL 如何从 Buffer 中获取数据
+            positionLocation, // 顶点属性的索引
+            4, // 组成数量，必须是1，2，3或4。我们只提供了 x 和 y
+            gl.FLOAT, // 每个元素的数据类型
+            false, // 是否归一化到特定的范围，对 FLOAT 类型数据设置无效
+            8 * 4, // stride 步长 数组中一行长度，0 表示数据是紧密的没有空隙，让OpenGL决定具体步长
+            0 // offset 字节偏移量，必须是类型的字节长度的倍数。
+        )
+        gl.enableVertexAttribArray(u_color)
+        gl.vertexAttribPointer(
+            u_color,
+            4,
+            gl.FLOAT,
+            false,
+            8 * 4,
+            4 * 4
+        )
+        gl.drawArrays(
+            // 从数组中绘制图元
+            gl.TRIANGLES, // 三角形，也可以是 gl.POINTS, gl.LINES, gl.LINE_STRIP, gl.LINE_
+            0, // 从数组中哪个点开始渲染
+            36 // 需要用到多少个点，三角形的三个顶点
+        )
+    }
 
     window.gl = gl
-    gl.clearColor(0, 0, 0, 1) // 设置清空颜色缓冲时的颜色值
     function addAxis() {
+        modelMatrix = glMatrix.mat4.create()
+        setMatrix(gl)
         let axisBuffer = gl.createBuffer()
         gl.bindBuffer(gl.ARRAY_BUFFER, axisBuffer)
         let arr = [
-            0, 0, 0,1, 1, 0, 0,1,
-            10, 0, 0,1, 1, 0, 0,1,
-            0, 0, 0,1, 0, 1, 0,1,
-            0, 10, 0,1, 0, 1, 0,1,
-            0, 0, 0,1, 0, 0, 1,1,
-            0, 0, 10,1, 0, 0, 1,1,
+            0, 0, 0, 1, 1, 0, 0, 1,
+            10, 0, 0, 1, 1, 0, 0, 1,
+            0, 0, 0, 1, 0, 1, 0, 1,
+            0, 10, 0, 1, 0, 1, 0, 1,
+            0, 0, 0, 1, 0, 0, 1, 1,
+            0, 0, 10, 1, 0, 0, 1, 1,
         ]
         gl.bufferData(
             gl.ARRAY_BUFFER,
@@ -192,7 +253,7 @@
             gl.FLOAT, // 每个元素的数据类型
             false, // 是否归一化到特定的范围，对 FLOAT 类型数据设置无效
             8 * 4, // stride 步长 数组中一行长度，0 表示数据是紧密的没有空隙，让OpenGL决定具体步长
-            4*4 // offset 字节偏移量，必须是类型的字节长度的倍数。
+            4 * 4 // offset 字节偏移量，必须是类型的字节长度的倍数。
         )
         gl.drawArrays(
             // 从数组中绘制图元
@@ -203,21 +264,78 @@
 
     }
     function render(params) {
-        // glMatrix.mat4.rotateY(ModelMatrix, ModelMatrix, 0.01)
-        // gl.uniformMatrix4fv(mMatrix, false, ModelMatrix)
+        gl.clearColor(0, 0, 0, 1) // 设置清空颜色缓冲时的颜色值
         gl.clear(gl.COLOR_BUFFER_BIT) // 清空颜色缓冲区，也就是清空画布
+        // glMatrix.mat4.rotate(modelMatrix, modelMatrix, 0.01, [0, 1, 0])
+        // gl.uniformMatrix4fv(mMatrix, false, modelMatrix)
         gl.enable(gl.DEPTH_TEST);
-        gl.drawArrays(
-            // 从数组中绘制图元
-            gl.TRIANGLES, // 三角形，也可以是 gl.POINTS, gl.LINES, gl.LINE_STRIP, gl.LINE_
-            0, // 从数组中哪个点开始渲染
-            36 // 需要用到多少个点，三角形的三个顶点
-        )
-        // gl.enable(gl.DEPTH_TEST)
         addAxis()
-        // requestAnimationFrame(render)
+        addbox()
+        requestAnimationFrame(render)
     }
     render()
+    window.onresize = function () {
+        canvas.width = window.innerWidth
+        canvas.height = window.innerHeight
+        gl.viewport(0, 0, canvas.width, canvas.height)
+        setMatrix(gl)
+        // render()
+    }
+    let last = glMatrix.vec2.create()
+    let state = 'none'
+    canvas.oncontextmenu = function (e) {
+        e.preventDefault()
+    }
+    canvas.onpointerdown = function (e) {
+        state = 'down'
+        last[0] = e.clientX
+        last[1] = e.clientY
+    }
+    canvas.onpointerup = function (e) {
+        state = 'none'
+        last[0] = e.clientX
+        last[1] = e.clientY
+    }
+    canvas.onpointermove = function (e) {
+        if (state === 'down') {
+            let deltx = e.clientX - last[0]
+            let delty = e.clientY - last[1]
+            // glMatrix.mat4.rotateY(ModelMatrix, ModelMatrix, e.movementX/100)
+            // glMatrix.mat4.rotateX(ModelMatrix, ModelMatrix, e.movementY/100)
+            // gl.uniformMatrix4fv(mMatrix, false, ModelMatrix)
+            pan(deltx, delty, gl)
+            last[0] = e.clientX
+            last[1] = e.clientY
+        }
+    }
+    function pan(deltaX, deltaY, gl) {
+        //相机近裁剪面尺寸
+        let cameraw = 40
+        let camerah = 40
+        //指针拖拽量在画布中的比值
+        let x = deltaX / canvas.width
+        let y = deltaY / canvas.height
+        let z = 0
+        //将像素单位的位移量转换为相机近裁剪面上的位移量
+        let dx = x * cameraw
+        let dy = y * camerah
+        //相机本地坐标系的x轴
+        let mx = [ViewMatrix[0], ViewMatrix[4], ViewMatrix[8], 0]
+        let my = [ViewMatrix[1], ViewMatrix[5], ViewMatrix[9], 0]
+        //相机x轴平移量
+        let tx = [-dx * mx[0], -dx * mx[1], -dx * mx[2], 0]
+        let ty = [-dy * my[0], -dy * my[1], -dy * my[2], 0]
+
+        ViewMatrix[0] = tx[0]
+        ViewMatrix[1] = ty[0]
+        ViewMatrix[4] = tx[1]
+        ViewMatrix[5] = ty[1]
+        ViewMatrix[8] = tx[2]
+        ViewMatrix[9] = ty[2]
+        gl.uniformMatrix4fv(vMatrix, false, ViewMatrix)
+    }
+
+
 </script>
 
 </html>

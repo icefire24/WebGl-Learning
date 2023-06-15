@@ -9,7 +9,7 @@
 </head>
 
 <body></body>
-<script src="./matrix.js"></script>
+<script src="./glmatrix.js"></script>
 <script>
   const canvas = document.createElement('canvas')
   canvas.width = canvas.height = 300
@@ -24,9 +24,9 @@
     vertexShader,
     `
   attribute vec4 a_position;
-
+  uniform mat4 modelmatrix;
   void main() {
-    gl_Position = a_position; // 设置顶点位置
+    gl_Position = modelmatrix*a_position; // 设置顶点位置
     gl_PointSize=20.0;
   }
 `
@@ -56,7 +56,9 @@
 
   const colorLocation = gl.getUniformLocation(program, 'u_color') // 获取 u_color 变量位置
   gl.uniform4f(colorLocation, 0.93, 0, 0.56, 1) // 设置它的值
-
+  const mMatrix=gl.getUniformLocation(program,'modelmatrix')
+  let matrix=glMatrix.mat4.create()
+  gl.uniformMatrix4fv(mMatrix,false,matrix)
   const positionLocation = gl.getAttribLocation(program, 'a_position')
   // 获取 a_position 位置
   const positionBuffer = gl.createBuffer()
@@ -77,6 +79,28 @@
     // 因为会将数据发送到 GPU，为了省去数据解析，这里使用 Float32Array 直接传送数据
     gl.STATIC_DRAW // 表示缓冲区的内容不会经常更改
   )
+  function rotate(rotate) {
+    rotate = rotate.map(item => item * Math.PI / 180)  
+    let rotateMatrix = {
+      x: [
+        1, 0, 0, 0,
+        0, Math.cos(rotate[0]), -Math.sin(rotate[0]), 0,
+        0, Math.sin(rotate[0]), Math.cos(rotate[0]), 0,
+        0, 0, 0, 1],
+      y: [
+        Math.cos(rotate[1]), 0, -Math.sin(rotate[1]), 0,
+        0, 1, 0, 0,
+        Math.sin(rotate[1]), 0, Math.cos(rotate[1]), 0,
+        0, 0, 0, 1],
+      z: [
+        Math.cos(rotate[2]), -Math.sin(rotate[2]), 0, 0,
+        Math.sin(rotate[2]), Math.cos(rotate[2]), 0, 0,
+        0, 0, 1, 0,
+        0, 0, 0, 1]
+
+    }
+    return rotateMatrix.z
+  }
   // 将顶点数据加入的刚刚创建的缓存对象
 
   gl.enableVertexAttribArray(positionLocation)
@@ -94,12 +118,17 @@
   gl.clearColor(0, 1, 1, 1) // 设置清空颜色缓冲时的颜色值
   gl.clear(gl.COLOR_BUFFER_BIT) // 清空颜色缓冲区，也就是清空画布
 
+  function render() {
+  matrix=glMatrix.mat4.multiply(matrix,matrix,rotate([0,0,0.2]))  
+  gl.uniformMatrix4fv(mMatrix,false,matrix)
   gl.drawArrays(
     // 从数组中绘制图元
     gl.TRIANGLE_FAN, // 三角形，也可以是 gl.POINTS, gl.LINES, gl.LINE_STRIP, gl.LINE_
     0, // 从数组中哪个点开始渲染
     4 // 需要用到多少个点，三角形的三个顶点
   )
+  }
+  render()
 </script>
 
 </html>
