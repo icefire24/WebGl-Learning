@@ -28,7 +28,7 @@
   canvas.width = canvas.height = 500
   const gl = canvas.getContext('webgl')
 
-  gl.viewport(0, 0, gl.canvas.width, gl.canvas.height)
+  // gl.viewport(0, 0, gl.canvas.width, gl.canvas.height)
   // 设置 webgl 视口，将 -1 到 1 映射为 canvas 上的坐标
 
   const vertexShader = gl.createShader(gl.VERTEX_SHADER) // 创建一个顶点着色器
