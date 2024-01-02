@@ -11,7 +11,8 @@
             "file": "${file}",
             "runtimeArgs": [
                 "--disable-web-security",
-            ]
+            ],
+            "runtimeExecutable": "canary",
         }
     ]
 }
